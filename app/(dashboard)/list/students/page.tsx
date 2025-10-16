@@ -1,6 +1,11 @@
 'use client'
 
 
-export default function AdminPage() {
-    return <><h1>This is  a page example </h1></>
+export default function StudentPage() {
+    return (
+        <div>
+            <h1>Student Dashboard</h1>
+            <p>Добро пожаловать в панель студентов.</p>
+        </div>
+    );
 }
