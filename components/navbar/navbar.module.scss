@@ -1,0 +1,53 @@
+.navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem; // p-4
+}
+
+/* SEARCH BAR */
+.title {
+  display: none;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  padding: 0 0.5rem;
+
+  @media (min-width: 768px) {
+    display: flex;
+  }
+}
+
+
+
+/* ICONS AND USER */
+.right {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem; // gap-6
+  justify-content: flex-end;
+  width: 100%;
+}
+
+
+/* USER INFO */
+.userInfo {
+  display: flex;
+  flex-direction: column;
+}
+
+.name {
+  font-size: 0.75rem; // text-xs
+  line-height: 0.75rem; // leading-3
+  font-weight: 500; // font-medium
+}
+
+.role {
+  font-size: 0.625rem; // text-[10px]
+  color: #6b7280; // text-gray-500
+  text-align: right;
+}
+
+.avatar {
+  border-radius: 50%; // rounded-full
+}

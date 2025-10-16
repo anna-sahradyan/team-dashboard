@@ -1,0 +1,21 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 80%;
+}
+
+.tableWrapper {
+  flex: 1;
+  overflow-x: auto;
+  padding: 20px;
+}
+
+.paginationWrapper {
+  display: flex;
+  justify-content: center;
+  padding: 40px 0;
+  background-color: #f8f8f8;
+  @media (max-width: 768px) {
+    padding: 8px;
+  }
+}
