@@ -1,3 +1,12 @@
+
+// breadcrumbsMap.ts
+export const breadcrumbsMap: Record<string, string> = {
+    '/': 'Home',
+    '/list/student': 'Students',
+    '/list/members': 'Members',
+};
+
+
 export interface Geo {
     lat: string;
     lng: string;

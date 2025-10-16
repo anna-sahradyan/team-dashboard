@@ -25,6 +25,7 @@ import {
     SelectChangeEvent, Snackbar, Alert,
 } from "@mui/material";
 import {useMemo, useState} from "react";
+import {MuiBreadcrumbs} from "@/components/MuiBreadcrabs";
 
 // Типы
 export interface ApiUser {
@@ -129,6 +130,7 @@ export const MuiTable = ({itemsPerPage = 10}: MuiTableProps) => {
     return (
         <Paper sx={{maxWidth: '100%', margin: '20px auto', p: 2}}>
             {/* Верхний фильтр-блок */}
+            <MuiBreadcrumbs/>
             <Box display="flex" flexDirection="column" gap={2} mb={2}>
                 <TextField
                     size="small"
