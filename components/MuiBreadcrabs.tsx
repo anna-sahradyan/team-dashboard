@@ -22,15 +22,19 @@ export const MuiBreadcrumbs = () => {
             <Link underline="hover" color="inherit" onClick={() => router.push('/')} sx={{ cursor: 'pointer' }}>
                 Go Home
             </Link>
-            {crumbs.map((crumb, i) =>
-                i === crumbs.length - 1 ? (
+            {crumbs.map((crumb, i) => {
+                const isLast = i === crumbs.length - 1;
+                const hasPage = breadcrumbsMap[crumb.href];
+                return isLast ? (
                     <Typography key={i} color="text.primary">{crumb.label}</Typography>
-                ) : (
+                ) : hasPage ? (
                     <Link key={i} underline="hover" color="inherit" onClick={() => router.push(crumb.href)} sx={{ cursor: 'pointer' }}>
                         {crumb.label}
                     </Link>
+                ) : (
+                    <Typography key={i} color="text.secondary">{crumb.label}</Typography>
                 )
-            )}
+            })}
         </Breadcrumbs>
     );
 };
