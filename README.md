@@ -1,4 +1,5 @@
 ## Team Members Management Table
+https://whimsical-flan-544e6d.netlify.app/list/members
 
 - Получение пользователей через TanStack Query с API `https://jsonplaceholder.typicode.com/users`.
 - Трансформация данных: назначение роли, статуса и аватара каждому пользователю.
