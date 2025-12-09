@@ -1,9 +1,7 @@
 'use client'
 import "./globals.css";
-import {Provider} from "react-redux";
-import {store} from "@/services/ store";
-
-
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+const queryClient= new QueryClient()
 export default function RootLayout({
                                        children,
                                    }: Readonly<{
@@ -12,9 +10,9 @@ export default function RootLayout({
     return (
         <html lang="en">
         <body>
-        <Provider store={store}>
+        <QueryClientProvider client={queryClient}>
             {children}
-        </Provider>
+        </QueryClientProvider>
         </body>
         </html>
     );

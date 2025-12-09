@@ -1,6 +1,5 @@
 'use client'
 
-import {useGetUsersQuery} from "@/services/userApi";
 import {
     Avatar,
     CircularProgress,
@@ -26,6 +25,8 @@ import {
 } from "@mui/material";
 import {useMemo, useState} from "react";
 import {MuiBreadcrumbs} from "@/components/MuiBreadcrabs";
+import {useQuery} from "@tanstack/react-query";
+import {fetchUsers} from "@/services/userService";
 
 // Типы
 export interface ApiUser {
@@ -48,7 +49,10 @@ interface MuiTableProps {
 }
 
 export const MuiTable = ({itemsPerPage = 10}: MuiTableProps) => {
-    const {data, isLoading, isError} = useGetUsersQuery();
+    const { data, isLoading, isError } = useQuery<ApiUser[], Error>({
+        queryKey: ['users'],
+        queryFn: fetchUsers,
+    });
     const [search, setSearch] = useState('');
     const [roleFilter, setRoleFilter] = useState<string | ''>('');
     const [page, setPage] = useState(1);
