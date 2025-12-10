@@ -1,5 +1,5 @@
 ## Team Members Management Table
-https://whimsical-flan-544e6d.netlify.app/list/members
+[Project Demo](https://whimsical-flan-544e6d.netlify.app/list/members)
 
 - Получение пользователей через TanStack Query с API `https://jsonplaceholder.typicode.com/users`.
 - Трансформация данных: назначение роли, статуса и аватара каждому пользователю.
@@ -8,3 +8,4 @@ https://whimsical-flan-544e6d.netlify.app/list/members
 - Добавление нового пользователя через диалог с валидацией.
 - Предупреждения показываются через MUI Snackbar + Alert.
 - Интерфейс построен на Material-UI: таблица, кнопки, селекты, аватары.
+- **3D-аватары пользователей реализованы с помощью Three.js** — вращающиеся кубы вместо обычных картинок.
