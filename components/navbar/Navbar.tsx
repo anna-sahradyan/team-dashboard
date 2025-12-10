@@ -14,7 +14,6 @@ export default function Navbar() {
                     <span className={style.name}>Anna</span>
                     <span className={style.role}>Admin</span>
                 </div>
-
                 <Image src="/avatar.png" alt="" width={36} height={36} className={style.avatar} />
             </div>
         </div>

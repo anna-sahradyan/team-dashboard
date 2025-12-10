@@ -5,6 +5,7 @@ import {Menu} from '@/components/menu/Menu';
 import style from './dashboard.module.scss';
 import React from "react";
 import Navbar from "@/components/navbar/Navbar";
+import Avatar3D from "@/animation/Avatar3D";
 
 export default function DashboardLayout({
                                             children,
@@ -17,7 +18,8 @@ export default function DashboardLayout({
                     href="/"
                     className={` ${style.link}`}
                 >
-                    <Image src="/logo.png" alt="logo" width={32} height={32}/>
+                    <Avatar3D/>
+                    {/*<Image src="/logo.png" alt="logo" width={32} height={32}/>*/}
                     <span className={`hidden   text-[#232829] font-[700]  ${style.img}`}>
   Team Dashboard
 </span>
