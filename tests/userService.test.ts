@@ -1,15 +1,13 @@
-// tests/userService.test.ts
-import { fetchUsers } from '@/services/userService';
+import {fetchUsers} from '@/services/userService';
 
-// Мокаешь глобальный fetch
 global.fetch = jest.fn(() =>
     Promise.resolve({
         ok: true,
         json: () =>
             Promise.resolve([
-                { id: 1, name: 'Leanne Graham', email: 'Sincere@april.biz' },
-                { id: 2, name: 'Ervin Howell', email: 'Shanna@melissa.tv' },
-                // ... можно добавить все 10 или только нужные
+                {id: 1, name: 'Leanne Graham', email: 'Sincere@april.biz'},
+                {id: 2, name: 'Ervin Howell', email: 'Shanna@melissa.tv'},
+
             ]),
     } as Response)
 );
