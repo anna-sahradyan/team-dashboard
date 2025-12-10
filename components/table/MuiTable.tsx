@@ -21,12 +21,14 @@ import {
     DialogTitle,
     DialogContent,
     DialogActions,
-    SelectChangeEvent, Snackbar, Alert,
+    SelectChangeEvent,
+    Snackbar,
+    Alert,
 } from "@mui/material";
-import {useMemo, useState} from "react";
-import {MuiBreadcrumbs} from "@/components/MuiBreadcrabs";
-import {useQuery} from "@tanstack/react-query";
-import {fetchUsers} from "@/services/userService";
+import React, { useEffect, useMemo, useRef, useState, memo } from "react";
+import { MuiBreadcrumbs } from "@/components/MuiBreadcrabs";
+import { useQuery } from "@tanstack/react-query";
+import {addUser, fetchUsers} from "@/services/userService";
 
 // Типы
 export interface ApiUser {
@@ -48,11 +50,39 @@ interface MuiTableProps {
     itemsPerPage?: number;
 }
 
-export const MuiTable = ({itemsPerPage = 10}: MuiTableProps) => {
+/* ----- Мемоизированный набор ячеек (оставляем TableRow в месте вызова, чтобы разметка не менялась) ----- */
+const RowCells = memo(({ user }: { user: UiUser }) => {
+    return (
+        <>
+            <TableCell><Avatar src={user.avatar} alt={user.name} /></TableCell>
+            <TableCell>{user.name}</TableCell>
+            <TableCell>{user.email}</TableCell>
+            <TableCell>{user.role}</TableCell>
+            <TableCell sx={{
+                backgroundColor:
+                    user.status === 'Active' ? '#E6F4EA' :
+                        user.status === 'Inactive' ? '#F0F0F0' :
+                            '#FFF4E5',
+                color:
+                    user.status === 'Active' ? 'green' :
+                        user.status === 'Inactive' ? 'gray' :
+                            'orange',
+                borderRadius: '4px',
+                textAlign: 'center'
+            }}>
+                {user.status}
+            </TableCell>
+        </>
+    );
+});
+RowCells.displayName = "RowCells";
+
+export const MuiTable = ({ itemsPerPage = 10 }: MuiTableProps) => {
     const { data, isLoading, isError } = useQuery<ApiUser[], Error>({
         queryKey: ['users'],
         queryFn: fetchUsers,
     });
+
     const [search, setSearch] = useState('');
     const [roleFilter, setRoleFilter] = useState<string | ''>('');
     const [page, setPage] = useState(1);
@@ -61,36 +91,59 @@ export const MuiTable = ({itemsPerPage = 10}: MuiTableProps) => {
     const [newUserName, setNewUserName] = useState('');
     const [newUserEmail, setNewUserEmail] = useState('');
     const [newUserRole, setNewUserRole] = useState<typeof roles[number]>(roles[0]);
+
     const [addedUsers, setAddedUsers] = useState<UiUser[]>([]);
     const [snackbarOpen, setSnackbarOpen] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState('');
-    const allUsers: (ApiUser | UiUser)[] = [...(data || []), ...addedUsers];
+
+    const nextIdRef = useRef<number>(1);
+    // Обновляем начальный nextId, когда подгрузятся данные
+    useEffect(() => {
+        if (data && data.length) {
+            nextIdRef.current = data.length + 1;
+        }
+    }, [data]);
+
     const showWarning = (message: string) => {
         setSnackbarMessage(message);
         setSnackbarOpen(true);
     };
-    const transformedUsers: UiUser[] = useMemo(() => {
-        return allUsers.map((user) => ({
+
+    /* ------------- разделяем трансформацию API пользователей и добавленных ------------- */
+    const transformedApiUsers = useMemo<UiUser[]>(() => {
+        if (!data) return [];
+        return data.map((user, idx) => ({
             ...user,
-            role: 'role' in user ? user.role : roles[user.id % roles.length],
-            status: 'status' in user ? user.status : statuses[user.id % statuses.length],
-            avatar: 'avatar' in user ? user.avatar : `https://i.pravatar.cc/150?u=${user.id}`,
+            role: roles[idx % roles.length],
+            status: statuses[idx % statuses.length],
+            avatar: `https://i.pravatar.cc/150?u=${user.id}`,
         }));
-    }, [allUsers]);
+    }, [data]);
 
-    if (isLoading) return <CircularProgress sx={{display: 'block', margin: '50px auto'}}/>;
-    if (isError) return <Typography color="error" textAlign="center">Error loading users</Typography>
+    const transformedAddedUsers = useMemo<UiUser[]>(() => {
+        // addedUsers уже приходят как UiUser — но мы всё равно можем гарантировать shape
+        return addedUsers.map(u => ({ ...u }));
+    }, [addedUsers]);
 
-    const filteredUsers = transformedUsers.filter(user =>
-        (user.name.toLowerCase().includes(search.toLowerCase()) ||
-            user.email.toLowerCase().includes(search.toLowerCase())) &&
-        (roleFilter === '' || user.role === roleFilter)
-    );
+    /* ------------- объединённый список (used for filtering/pagination) ------------- */
+    const allUsers = useMemo<UiUser[]>(() => {
+        return [...transformedApiUsers, ...transformedAddedUsers];
+    }, [transformedApiUsers, transformedAddedUsers]);
 
-    const start = (page - 1) * itemsPerPage;
-    const paginatedUsers = filteredUsers.slice(start, start + itemsPerPage);
+    /* ------------- фильтрация — мемоизация по allUsers, search, roleFilter ------------- */
+    const filteredUsers = useMemo(() => {
+        const q = search.trim().toLowerCase();
+        return allUsers.filter(user =>
+            ((user.name.toLowerCase().includes(q) || user.email.toLowerCase().includes(q))) &&
+            (roleFilter === '' || user.role === roleFilter)
+        );
+    }, [allUsers, search, roleFilter]);
+
+    const start = useMemo(() => (page - 1) * itemsPerPage, [page, itemsPerPage]);
+    const paginatedUsers = useMemo(() => filteredUsers.slice(start, start + itemsPerPage), [filteredUsers, start, itemsPerPage]);
     const pageCount = Math.ceil(filteredUsers.length / itemsPerPage);
 
+    /* ----- handlers ----- */
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSearch(e.target.value);
         setPage(1);
@@ -101,28 +154,47 @@ export const MuiTable = ({itemsPerPage = 10}: MuiTableProps) => {
         setPage(1);
     };
 
-    const handleAddUser = () => {
+    const handleAddUser = async () => {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!newUserName.trim() || !emailRegex.test(newUserEmail)) {
             showWarning('Please enter a valid name and email');
             return;
         }
 
-        const newUser: UiUser = {
-            id: Date.now(),
+        const newUserData = {
             name: newUserName,
             email: newUserEmail,
             role: newUserRole,
-            status: 'Active',
-            avatar: `https://i.pravatar.cc/150?u=${Date.now()}`,
         };
-        setAddedUsers([...addedUsers, newUser]);
-        setNewUserName('');
-        setNewUserEmail('');
-        setNewUserRole(roles[0]);
-        const newPageCount = Math.ceil((transformedUsers.length + 1) / itemsPerPage);
-        setPage(newPageCount);
-        setOpenDialog(false);
+
+        try {
+            // отправляем на сервер
+            const added = await addUser(newUserData);
+
+            // формируем UiUser для таблицы
+            const newUser: UiUser = {
+                id: added.id, // серверный ID или локальный fallback
+                name: added.name,
+                email: added.email,
+                role: added.role as typeof roles[number],
+                status: 'Active',
+                avatar: `https://i.pravatar.cc/150?u=${added.id}`,
+            };
+
+            setAddedUsers(prev => [...prev, newUser]);
+
+            setNewUserName('');
+            setNewUserEmail('');
+            setNewUserRole(roles[0]);
+
+            const newPage = Math.ceil((filteredUsers.length + 1) / itemsPerPage);
+            setPage(newPage);
+
+            setOpenDialog(false);
+        } catch (err) {
+            showWarning('Failed to add user. Try again later.');
+            console.error(err);
+        }
     };
 
     const handleOpenDialog = () => {
@@ -131,6 +203,10 @@ export const MuiTable = ({itemsPerPage = 10}: MuiTableProps) => {
         setNewUserRole(roles[0]);
         setOpenDialog(true);
     };
+
+    if (isLoading) return <CircularProgress sx={{display: 'block', margin: '50px auto'}}/>;
+    if (isError) return <Typography color="error" textAlign="center">Error loading users</Typography>;
+
     return (
         <Paper sx={{maxWidth: '100%', margin: '20px auto', p: 2}}>
             {/* Верхний фильтр-блок */}
@@ -181,25 +257,9 @@ export const MuiTable = ({itemsPerPage = 10}: MuiTableProps) => {
                     <TableBody>
                         {paginatedUsers.length > 0 ? (
                             paginatedUsers.map(user => (
+                                // оставляем TableRow в том же виде — меняется только содержимое через RowCells (мемо)
                                 <TableRow key={user.id}>
-                                    <TableCell><Avatar src={user.avatar} alt={user.name}/></TableCell>
-                                    <TableCell>{user.name}</TableCell>
-                                    <TableCell>{user.email}</TableCell>
-                                    <TableCell>{user.role}</TableCell>
-                                    <TableCell sx={{
-                                        backgroundColor:
-                                            user.status === 'Active' ? '#E6F4EA' :
-                                                user.status === 'Inactive' ? '#F0F0F0' :
-                                                    '#FFF4E5',
-                                        color:
-                                            user.status === 'Active' ? 'green' :
-                                                user.status === 'Inactive' ? 'gray' :
-                                                    'orange',
-                                        borderRadius: '4px',
-                                        textAlign: 'center'
-                                    }}>
-                                        {user.status}
-                                    </TableCell>
+                                    <RowCells user={user}/>
                                 </TableRow>
                             ))
                         ) : (
