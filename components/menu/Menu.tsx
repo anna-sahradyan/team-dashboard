@@ -52,7 +52,7 @@ const menuItems = [
             {
                 icon: "/exam.png",
                 label: "Exams",
-                href: "/list/exams",
+                href: "/",
                 visible: ["admin", "teacher", "student", "parent"],
             },
             {
